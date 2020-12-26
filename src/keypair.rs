@@ -121,9 +121,6 @@ impl Keypair {
     ///
     /// The caller must also supply a hash function which implements the
     /// `Digest` and `Default` traits, and which returns 512 bits of output.
-    /// The standard hash function used for most ed25519 libraries is SHA-512,
-    /// which is available with `use sha3::Sha3_512` as in the example above.
-    /// Other suitable hash functions include Keccak-512 and Blake2b-512.
     #[cfg(feature = "rand")]
     pub fn generate<R>(csprng: &mut R) -> Keypair
     where
@@ -135,8 +132,7 @@ impl Keypair {
         Keypair{ public: pk, secret: sk }
     }
 
-    /// Sign a `prehashed_message` with this `Keypair` using the
-    /// Ed25519ph algorithm defined in [RFC8032 §5.1][rfc8032].
+    /// Sign a `prehashed_message` with this `Keypair`.
     ///
     /// # Inputs
     ///
@@ -234,7 +230,6 @@ impl Keypair {
     /// # fn main() { }
     /// ```
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     /// [terrible_idea]: https://github.com/isislovecruft/scripts/blob/master/gpgkey2bc.py
     pub fn sign_prehashed<D>(
         &self,
@@ -320,7 +315,6 @@ impl Keypair {
     /// # fn main() { }
     /// ```
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     pub fn verify_prehashed<D>(
         &self,
         prehashed_message: D,

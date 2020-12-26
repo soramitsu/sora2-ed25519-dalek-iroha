@@ -177,7 +177,6 @@ impl PublicKey {
     /// Returns `true` if the `signature` was a valid signature created by this
     /// `Keypair` on the `prehashed_message`.
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     #[allow(non_snake_case)]
     pub fn verify_prehashed<D>(
         &self,

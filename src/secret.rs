@@ -430,7 +430,6 @@ impl ExpandedSecretKey {
     /// `prehashed_message` if the context was 255 bytes or less, otherwise
     /// a `SignatureError`.
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     #[allow(non_snake_case)]
     pub fn sign_prehashed<'a, D>(
         &self,

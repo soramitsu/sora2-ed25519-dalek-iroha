@@ -150,8 +150,6 @@ impl InternalSignature {
     /// `2^253 - 2^252 + 2774231777737235353585193779088364849311` remaining scalars
     /// which could cause malleabilllity.
     ///
-    /// RFC8032 [states](https://tools.ietf.org/html/rfc8032#section-5.1.7):
-    ///
     /// > To verify a signature on a message M using public key A, [...]
     /// > first split the signature into two 32-octet halves.  Decode the first
     /// > half as a point R, and the second half as an integer S, in the range

@@ -1,3 +1,35 @@
+# Iroha cryptography 
+This library is adoption of original library to Iroha cryptography.
+Major changes:
+- Altered signature digest algorithm from SHA512 to SHA3-512 
+- Altered prehashing digest algorithm from SHA512 to SAH3-256
+- Removed the feature 'asm' due crate SHA3 do not contain it
+
+# Usage
+```rust
+use ed25519_dalek::*;
+use rand::rngs::OsRng;
+
+fn foo() {
+    //message to sign
+    let message = b"foobar";
+
+    let keypair = Keypair::generate(&mut rand::rngs::OsRng {});
+    //prehashed message before signing
+    let mut prehash_for_signing = Sha3_256::new();
+    prehash_for_signing.update(message);
+    //signature of the message
+    let sig = keypair.sign_prehashed(prehash_for_signing, None).unwrap();
+
+    //recreate public key for verification
+    let public_key = PublicKey::from_bytes(&keypair.public.to_bytes()).unwrap();
+    //prehashed message before verifying
+    let mut prehash_for_verifying = Sha3_256::new();
+    prehash_for_verifying.update(message);
+    assert!(public_key.verify_prehashed(prehash_for_verifying, None, &sig).is_ok());
+}
+```
+
 # ed25519-dalek [![](https://img.shields.io/crates/v/ed25519-dalek.svg)](https://crates.io/crates/ed25519-dalek) [![](https://docs.rs/ed25519-dalek/badge.svg)](https://docs.rs/ed25519-dalek) [![](https://travis-ci.org/dalek-cryptography/ed25519-dalek.svg?branch=master)](https://travis-ci.org/dalek-cryptography/ed25519-dalek?branch=master)
 
 Fast and efficient Rust implementation of ed25519 key generation, signing, and
