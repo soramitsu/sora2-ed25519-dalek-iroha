@@ -12,7 +12,7 @@
 use core::fmt::Debug;
 
 use curve25519_dalek::constants;
-use curve25519_dalek::digest::generic_array::typenum::U64;
+use curve25519_dalek::digest::generic_array::typenum::U32;
 use curve25519_dalek::digest::Digest;
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use curve25519_dalek::scalar::Scalar;
@@ -412,11 +412,11 @@ impl ExpandedSecretKey {
     }
 
     /// Sign a `prehashed_message` with this `ExpandedSecretKey` using the
-    /// Ed25519ph algorithm defined in [RFC8032 §5.1][rfc8032].
+    /// Ed25519ph algorithm.
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `public_key` is a [`PublicKey`] which corresponds to this secret key.
@@ -439,10 +439,10 @@ impl ExpandedSecretKey {
         context: Option<&'a [u8]>,
     ) -> Result<ed25519::Signature, SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
         let mut h: Sha3_512;
-        let mut prehash: [u8; 64] = [0u8; 64];
+        let mut prehash: [u8; 32] = [0u8; 32];
         let R: CompressedEdwardsY;
         let r: Scalar;
         let s: Scalar;
@@ -454,12 +454,8 @@ impl ExpandedSecretKey {
             return Err(SignatureError::from(InternalError::PrehashedContextLengthError));
         }
 
-        let ctx_len: u8 = ctx.len() as u8;
-
         // Get the result of the pre-hashed message.
         prehash.copy_from_slice(prehashed_message.finalize().as_slice());
-
-        //todo check me
 
         // This is the dumbest, ten-years-late, non-admission of fucking up the
         // domain separation I have ever seen.  Why am I still required to put
@@ -474,21 +470,14 @@ impl ExpandedSecretKey {
         // This is a really fucking stupid bandaid, and the damned scheme is
         // still bleeding from malleability, for fuck's sake.
         h = Sha3_512::new()
-            .chain(b"SigEd25519 no Ed25519 collisions")
-            .chain(&[1]) // Ed25519ph
-            .chain(&[ctx_len])
-            .chain(ctx)
             .chain(&self.nonce)
+            .chain(ctx)
             .chain(&prehash[..]);
 
         r = Scalar::from_hash(h);
         R = (&r * &constants::ED25519_BASEPOINT_TABLE).compress();
 
         h = Sha3_512::new()
-            .chain(b"SigEd25519 no Ed25519 collisions")
-            .chain(&[1]) // Ed25519ph
-            .chain(&[ctx_len])
-            .chain(ctx)
             .chain(R.as_bytes())
             .chain(public_key.as_bytes())
             .chain(&prehash[..]);

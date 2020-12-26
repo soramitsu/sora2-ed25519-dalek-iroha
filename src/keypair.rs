@@ -20,8 +20,9 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_bytes::{Bytes as SerdeBytes, ByteBuf as SerdeByteBuf};
 
 pub use sha3::Sha3_512;
+pub use sha3::Sha3_256;
 
-use curve25519_dalek::digest::generic_array::typenum::U64;
+use curve25519_dalek::digest::generic_array::typenum::U32;
 pub use curve25519_dalek::digest::Digest;
 
 use ed25519::signature::{Signer, Verifier};
@@ -139,7 +140,7 @@ impl Keypair {
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `context` is an optional context string, up to 255 bytes inclusive,
@@ -208,13 +209,14 @@ impl Keypair {
     /// # use ed25519_dalek::Signature;
     /// # use ed25519_dalek::SignatureError;
     /// # use ed25519_dalek::Sha3_512;
+    /// # use ed25519_dalek::Sha3_256;
     /// # use rand::rngs::OsRng;
     /// #
     /// # fn do_test() -> Result<Signature, SignatureError> {
     /// # let mut csprng = OsRng{};
     /// # let keypair: Keypair = Keypair::generate(&mut csprng);
     /// # let message: &[u8] = b"All I want is to pet all of the dogs.";
-    /// # let mut prehashed: Sha3_512 = Sha3_512::new();
+    /// # let mut prehashed: Sha3_256 = Sha3_256::new();
     /// # prehashed.update(message);
     /// #
     /// let context: &[u8] = b"Ed25519DalekSignPrehashedDoctest";
@@ -240,7 +242,7 @@ impl Keypair {
         context: Option<&[u8]>,
     ) -> Result<ed25519::Signature, SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
         let expanded: ExpandedSecretKey = (&self.secret).into(); // xxx thanks i hate this
 
@@ -261,7 +263,7 @@ impl Keypair {
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `context` is an optional context string, up to 255 bytes inclusive,
@@ -284,7 +286,7 @@ impl Keypair {
     /// use ed25519_dalek::Keypair;
     /// use ed25519_dalek::Signature;
     /// use ed25519_dalek::SignatureError;
-    /// use ed25519_dalek::Sha3_512;
+    /// use ed25519_dalek::Sha3_256;
     /// use rand::rngs::OsRng;
     ///
     /// # fn do_test() -> Result<(), SignatureError> {
@@ -292,15 +294,14 @@ impl Keypair {
     /// let keypair: Keypair = Keypair::generate(&mut csprng);
     /// let message: &[u8] = b"All I want is to pet all of the dogs.";
     ///
-    /// let mut prehashed: Sha3_512 = Sha3_512::new();
+    /// let mut prehashed: Sha3_256 = Sha3_256::new();
     /// prehashed.update(message);
     ///
     /// let context: &[u8] = b"Ed25519DalekSignPrehashedDoctest";
     ///
     /// let sig: Signature = keypair.sign_prehashed(prehashed, Some(context))?;
-    ///todo!(check me);
-    /// // The sha2::Sha3_512 struct doesn't implement Copy, so we'll have to create a new one:
-    /// let mut prehashed_again: Sha3_512 = Sha3_512::default();
+    /// // The sha3::Sha3_256 struct doesn't implement Copy, so we'll have to create a new one:
+    /// let mut prehashed_again: Sha3_256 = Sha3_256::default();
     /// prehashed_again.update(message);
     ///
     /// let verified = keypair.public.verify_prehashed(prehashed_again, Some(context), &sig);
@@ -327,7 +328,7 @@ impl Keypair {
         signature: &ed25519::Signature,
     ) -> Result<(), SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
         self.public.verify_prehashed(prehashed_message, context, signature)
     }

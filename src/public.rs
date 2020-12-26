@@ -13,7 +13,7 @@ use core::convert::TryFrom;
 use core::fmt::Debug;
 
 use curve25519_dalek::constants;
-use curve25519_dalek::digest::generic_array::typenum::U64;
+use curve25519_dalek::digest::generic_array::typenum::U32;
 use curve25519_dalek::digest::Digest;
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use curve25519_dalek::edwards::EdwardsPoint;
@@ -164,7 +164,7 @@ impl PublicKey {
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `context` is an optional context string, up to 255 bytes inclusive,
@@ -186,7 +186,7 @@ impl PublicKey {
         signature: &ed25519::Signature,
     ) -> Result<(), SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
         let signature = InternalSignature::try_from(signature)?;
 
@@ -199,10 +199,6 @@ impl PublicKey {
 
         let minus_A: EdwardsPoint = -self.1;
 
-        h.update(b"SigEd25519 no Ed25519 collisions");
-        h.update(&[1]); // Ed25519ph
-        h.update(&[ctx.len() as u8]);
-        h.update(ctx);
         h.update(signature.R.as_bytes());
         h.update(self.as_bytes());
         h.update(prehashed_message.finalize().as_slice());
