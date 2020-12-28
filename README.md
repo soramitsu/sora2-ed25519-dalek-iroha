@@ -1,3 +1,35 @@
+# Iroha cryptography 
+This library is adoption of original library to Iroha cryptography.
+Major changes:
+- Altered signature digest algorithm from SHA512 to SHA3-512 
+- Altered prehashing digest algorithm from SHA512 to SHA3-256
+- Removed the feature 'asm' due crate SHA3 do not contain it
+
+# Usage
+```rust
+use ed25519_dalek_iroha::*;
+use rand::rngs::OsRng;
+
+fn main() {
+    //message to sign
+    let message = b"foobar";
+
+    let keypair = Keypair::generate(&mut OsRng {});
+    //prehashed message before signing
+    let mut prehash_for_signing = Sha3_256::new();
+    prehash_for_signing.update(message);
+    //signature of the message
+    let sig = keypair.sign_prehashed(prehash_for_signing, None).unwrap();
+
+    //recreate public key for verification
+    let public_key = PublicKey::from_bytes(&keypair.public.to_bytes()).unwrap();
+    //prehashed message before verifying
+    let mut prehash_for_verifying = Sha3_256::new();
+    prehash_for_verifying.update(message);
+    assert!(public_key.verify_prehashed(prehash_for_verifying, None, &sig).is_ok());
+}
+```
+
 # ed25519-dalek [![](https://img.shields.io/crates/v/ed25519-dalek.svg)](https://crates.io/crates/ed25519-dalek) [![](https://docs.rs/ed25519-dalek/badge.svg)](https://docs.rs/ed25519-dalek) [![](https://travis-ci.org/dalek-cryptography/ed25519-dalek.svg?branch=master)](https://travis-ci.org/dalek-cryptography/ed25519-dalek?branch=master)
 
 Fast and efficient Rust implementation of ed25519 key generation, signing, and
@@ -12,7 +44,7 @@ Documentation is available [here](https://docs.rs/ed25519-dalek).
 To install, add the following to your project's `Cargo.toml`:
 
 ```toml
-[dependencies.ed25519-dalek]
+[dependencies.ed25519-dalek-iroha]
 version = "1"
 ```
 
@@ -212,11 +244,12 @@ features.
 
 ## Nightly Compilers
 
-To cause your application to build `ed25519-dalek` with the nightly feature
+To cause your application to build `ed25519-dalek-iroha` with the nightly feature
+To cause your application to build `ed25519-dalek-iroha` with the nightly feature
 enabled by default, instead do:
 
 ```toml
-[dependencies.ed25519-dalek]
+[dependencies.ed25519-dalek-iroha]
 version = "1"
 features = ["nightly"]
 ```
@@ -227,7 +260,7 @@ to the `Cargo.toml`:
 
 ```toml
 [features]
-nightly = ["ed25519-dalek/nightly"]
+nightly = ["ed25519-dalek-iroha/nightly"]
 ```
 
 ## Serde

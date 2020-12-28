@@ -35,7 +35,7 @@ use rand::thread_rng;
 #[cfg(all(not(feature = "batch"), feature = "batch_deterministic"))]
 use rand_core;
 
-use sha2::Sha512;
+use sha3::Sha3_512;
 
 use crate::errors::InternalError;
 use crate::errors::SignatureError;
@@ -193,14 +193,14 @@ fn zero_rng() -> ZeroRng {
 /// # Examples
 ///
 /// ```
-/// extern crate ed25519_dalek;
+/// extern crate ed25519_dalek_iroha;
 /// extern crate rand;
 ///
-/// use ed25519_dalek::verify_batch;
-/// use ed25519_dalek::Keypair;
-/// use ed25519_dalek::PublicKey;
-/// use ed25519_dalek::Signer;
-/// use ed25519_dalek::Signature;
+/// use ed25519_dalek_iroha::verify_batch;
+/// use ed25519_dalek_iroha::Keypair;
+/// use ed25519_dalek_iroha::PublicKey;
+/// use ed25519_dalek_iroha::Signer;
+/// use ed25519_dalek_iroha::Signature;
 /// use rand::rngs::OsRng;
 ///
 /// # fn main() {
@@ -243,7 +243,7 @@ pub fn verify_batch(
 
     // Compute H(R || A || M) for each (signature, public_key, message) triplet
     let hrams: Vec<Scalar> = (0..signatures.len()).map(|i| {
-        let mut h: Sha512 = Sha512::default();
+        let mut h: Sha3_512 = Sha3_512::default();
         h.update(signatures[i].R.as_bytes());
         h.update(public_keys[i].as_bytes());
         h.update(&messages[i]);

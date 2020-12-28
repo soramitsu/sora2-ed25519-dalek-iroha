@@ -12,7 +12,7 @@
 use core::fmt::Debug;
 
 use curve25519_dalek::constants;
-use curve25519_dalek::digest::generic_array::typenum::U64;
+use curve25519_dalek::digest::generic_array::typenum::U32;
 use curve25519_dalek::digest::Digest;
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use curve25519_dalek::scalar::Scalar;
@@ -20,7 +20,7 @@ use curve25519_dalek::scalar::Scalar;
 #[cfg(feature = "rand")]
 use rand::{CryptoRng, RngCore};
 
-use sha2::Sha512;
+use sha3::Sha3_512;
 
 #[cfg(feature = "serde")]
 use serde::de::Error as SerdeError;
@@ -74,11 +74,11 @@ impl SecretKey {
     /// # Example
     ///
     /// ```
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
-    /// use ed25519_dalek::SecretKey;
-    /// use ed25519_dalek::SECRET_KEY_LENGTH;
-    /// use ed25519_dalek::SignatureError;
+    /// use ed25519_dalek_iroha::SecretKey;
+    /// use ed25519_dalek_iroha::SECRET_KEY_LENGTH;
+    /// use ed25519_dalek_iroha::SignatureError;
     ///
     /// # fn doctest() -> Result<SecretKey, SignatureError> {
     /// let secret_key_bytes: [u8; SECRET_KEY_LENGTH] = [
@@ -122,15 +122,15 @@ impl SecretKey {
     ///
     /// ```
     /// extern crate rand;
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     ///
     /// # #[cfg(feature = "std")]
     /// # fn main() {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::PublicKey;
-    /// use ed25519_dalek::SecretKey;
-    /// use ed25519_dalek::Signature;
+    /// use ed25519_dalek_iroha::PublicKey;
+    /// use ed25519_dalek_iroha::SecretKey;
+    /// use ed25519_dalek_iroha::Signature;
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -144,14 +144,14 @@ impl SecretKey {
     ///
     /// ```
     /// # extern crate rand;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
     /// # fn main() {
     /// #
     /// # use rand::rngs::OsRng;
-    /// # use ed25519_dalek::PublicKey;
-    /// # use ed25519_dalek::SecretKey;
-    /// # use ed25519_dalek::Signature;
+    /// # use ed25519_dalek_iroha::PublicKey;
+    /// # use ed25519_dalek_iroha::SecretKey;
+    /// # use ed25519_dalek_iroha::Signature;
     /// #
     /// # let mut csprng = OsRng{};
     /// # let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -249,13 +249,13 @@ impl<'a> From<&'a SecretKey> for ExpandedSecretKey {
     ///
     /// ```
     /// # extern crate rand;
-    /// # extern crate sha2;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate sha3;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
     /// # fn main() {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::{SecretKey, ExpandedSecretKey};
+    /// use ed25519_dalek_iroha::{SecretKey, ExpandedSecretKey};
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -263,7 +263,7 @@ impl<'a> From<&'a SecretKey> for ExpandedSecretKey {
     /// # }
     /// ```
     fn from(secret_key: &'a SecretKey) -> ExpandedSecretKey {
-        let mut h: Sha512 = Sha512::default();
+        let mut h: Sha3_512 = Sha3_512::default();
         let mut hash:  [u8; 64] = [0u8; 64];
         let mut lower: [u8; 32] = [0u8; 32];
         let mut upper: [u8; 32] = [0u8; 32];
@@ -295,14 +295,14 @@ impl ExpandedSecretKey {
     ///
     /// ```
     /// # extern crate rand;
-    /// # extern crate sha2;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate sha3;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
     /// # #[cfg(feature = "std")]
     /// # fn main() {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::{SecretKey, ExpandedSecretKey};
+    /// use ed25519_dalek_iroha::{SecretKey, ExpandedSecretKey};
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -335,17 +335,17 @@ impl ExpandedSecretKey {
     ///
     /// ```
     /// # extern crate rand;
-    /// # extern crate sha2;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate sha3;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
-    /// # use ed25519_dalek::{ExpandedSecretKey, SignatureError};
+    /// # use ed25519_dalek_iroha::{ExpandedSecretKey, SignatureError};
     /// #
     /// # #[cfg(feature = "std")]
     /// # fn do_test() -> Result<ExpandedSecretKey, SignatureError> {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::{SecretKey, ExpandedSecretKey};
-    /// use ed25519_dalek::SignatureError;
+    /// use ed25519_dalek_iroha::{SecretKey, ExpandedSecretKey};
+    /// use ed25519_dalek_iroha::SignatureError;
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -388,7 +388,7 @@ impl ExpandedSecretKey {
     /// Sign a message with this `ExpandedSecretKey`.
     #[allow(non_snake_case)]
     pub fn sign(&self, message: &[u8], public_key: &PublicKey) -> ed25519::Signature {
-        let mut h: Sha512 = Sha512::new();
+        let mut h: Sha3_512 = Sha3_512::new();
         let R: CompressedEdwardsY;
         let r: Scalar;
         let s: Scalar;
@@ -400,7 +400,7 @@ impl ExpandedSecretKey {
         r = Scalar::from_hash(h);
         R = (&r * &constants::ED25519_BASEPOINT_TABLE).compress();
 
-        h = Sha512::new();
+        h = Sha3_512::new();
         h.update(R.as_bytes());
         h.update(public_key.as_bytes());
         h.update(&message);
@@ -412,11 +412,11 @@ impl ExpandedSecretKey {
     }
 
     /// Sign a `prehashed_message` with this `ExpandedSecretKey` using the
-    /// Ed25519ph algorithm defined in [RFC8032 §5.1][rfc8032].
+    /// Ed25519ph algorithm.
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `public_key` is a [`PublicKey`] which corresponds to this secret key.
@@ -430,7 +430,6 @@ impl ExpandedSecretKey {
     /// `prehashed_message` if the context was 255 bytes or less, otherwise
     /// a `SignatureError`.
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     #[allow(non_snake_case)]
     pub fn sign_prehashed<'a, D>(
         &self,
@@ -439,10 +438,10 @@ impl ExpandedSecretKey {
         context: Option<&'a [u8]>,
     ) -> Result<ed25519::Signature, SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
-        let mut h: Sha512;
-        let mut prehash: [u8; 64] = [0u8; 64];
+        let mut h: Sha3_512;
+        let mut prehash: [u8; 32] = [0u8; 32];
         let R: CompressedEdwardsY;
         let r: Scalar;
         let s: Scalar;
@@ -453,8 +452,6 @@ impl ExpandedSecretKey {
         if ctx.len() > 255 {
             return Err(SignatureError::from(InternalError::PrehashedContextLengthError));
         }
-
-        let ctx_len: u8 = ctx.len() as u8;
 
         // Get the result of the pre-hashed message.
         prehash.copy_from_slice(prehashed_message.finalize().as_slice());
@@ -471,22 +468,15 @@ impl ExpandedSecretKey {
         //
         // This is a really fucking stupid bandaid, and the damned scheme is
         // still bleeding from malleability, for fuck's sake.
-        h = Sha512::new()
-            .chain(b"SigEd25519 no Ed25519 collisions")
-            .chain(&[1]) // Ed25519ph
-            .chain(&[ctx_len])
-            .chain(ctx)
+        h = Sha3_512::new()
             .chain(&self.nonce)
+            .chain(ctx)
             .chain(&prehash[..]);
 
         r = Scalar::from_hash(h);
         R = (&r * &constants::ED25519_BASEPOINT_TABLE).compress();
 
-        h = Sha512::new()
-            .chain(b"SigEd25519 no Ed25519 collisions")
-            .chain(&[1]) // Ed25519ph
-            .chain(&[ctx_len])
-            .chain(ctx)
+        h = Sha3_512::new()
             .chain(R.as_bytes())
             .chain(public_key.as_bytes())
             .chain(&prehash[..]);

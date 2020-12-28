@@ -13,7 +13,7 @@ use core::convert::TryFrom;
 use core::fmt::Debug;
 
 use curve25519_dalek::constants;
-use curve25519_dalek::digest::generic_array::typenum::U64;
+use curve25519_dalek::digest::generic_array::typenum::U32;
 use curve25519_dalek::digest::Digest;
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use curve25519_dalek::edwards::EdwardsPoint;
@@ -21,7 +21,7 @@ use curve25519_dalek::scalar::Scalar;
 
 use ed25519::signature::Verifier;
 
-pub use sha2::Sha512;
+pub use sha3::Sha3_512;
 
 #[cfg(feature = "serde")]
 use serde::de::Error as SerdeError;
@@ -54,7 +54,7 @@ impl AsRef<[u8]> for PublicKey {
 impl<'a> From<&'a SecretKey> for PublicKey {
     /// Derive this public key from its corresponding `SecretKey`.
     fn from(secret_key: &SecretKey) -> PublicKey {
-        let mut h: Sha512 = Sha512::new();
+        let mut h: Sha3_512 = Sha3_512::new();
         let mut hash: [u8; 64] = [0u8; 64];
         let mut digest: [u8; 32] = [0u8; 32];
 
@@ -100,11 +100,11 @@ impl PublicKey {
     /// # Example
     ///
     /// ```
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
-    /// use ed25519_dalek::PublicKey;
-    /// use ed25519_dalek::PUBLIC_KEY_LENGTH;
-    /// use ed25519_dalek::SignatureError;
+    /// use ed25519_dalek_iroha::PublicKey;
+    /// use ed25519_dalek_iroha::PUBLIC_KEY_LENGTH;
+    /// use ed25519_dalek_iroha::SignatureError;
     ///
     /// # fn doctest() -> Result<PublicKey, SignatureError> {
     /// let public_key_bytes: [u8; PUBLIC_KEY_LENGTH] = [
@@ -164,7 +164,7 @@ impl PublicKey {
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `context` is an optional context string, up to 255 bytes inclusive,
@@ -177,7 +177,6 @@ impl PublicKey {
     /// Returns `true` if the `signature` was a valid signature created by this
     /// `Keypair` on the `prehashed_message`.
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     #[allow(non_snake_case)]
     pub fn verify_prehashed<D>(
         &self,
@@ -186,11 +185,11 @@ impl PublicKey {
         signature: &ed25519::Signature,
     ) -> Result<(), SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
         let signature = InternalSignature::try_from(signature)?;
 
-        let mut h: Sha512 = Sha512::default();
+        let mut h: Sha3_512 = Sha3_512::default();
         let R: EdwardsPoint;
         let k: Scalar;
 
@@ -199,10 +198,6 @@ impl PublicKey {
 
         let minus_A: EdwardsPoint = -self.1;
 
-        h.update(b"SigEd25519 no Ed25519 collisions");
-        h.update(&[1]); // Ed25519ph
-        h.update(&[ctx.len() as u8]);
-        h.update(ctx);
         h.update(signature.R.as_bytes());
         h.update(self.as_bytes());
         h.update(prehashed_message.finalize().as_slice());
@@ -288,7 +283,7 @@ impl PublicKey {
     {
         let signature = InternalSignature::try_from(signature)?;
 
-        let mut h: Sha512 = Sha512::new();
+        let mut h: Sha3_512 = Sha3_512::new();
         let R: EdwardsPoint;
         let k: Scalar;
         let minus_A: EdwardsPoint = -self.1;
@@ -334,7 +329,7 @@ impl Verifier<ed25519::Signature> for PublicKey {
     {
         let signature = InternalSignature::try_from(signature)?;
 
-        let mut h: Sha512 = Sha512::new();
+        let mut h: Sha3_512 = Sha3_512::new();
         let R: EdwardsPoint;
         let k: Scalar;
         let minus_A: EdwardsPoint = -self.1;

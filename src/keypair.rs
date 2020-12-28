@@ -19,9 +19,10 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg(feature = "serde")]
 use serde_bytes::{Bytes as SerdeBytes, ByteBuf as SerdeByteBuf};
 
-pub use sha2::Sha512;
+pub use sha3::Sha3_512;
+pub use sha3::Sha3_256;
 
-use curve25519_dalek::digest::generic_array::typenum::U64;
+use curve25519_dalek::digest::generic_array::typenum::U32;
 pub use curve25519_dalek::digest::Digest;
 
 use ed25519::signature::{Signer, Verifier};
@@ -96,14 +97,14 @@ impl Keypair {
     ///
     /// ```
     /// extern crate rand;
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     ///
     /// # #[cfg(feature = "std")]
     /// # fn main() {
     ///
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::Keypair;
-    /// use ed25519_dalek::Signature;
+    /// use ed25519_dalek_iroha::Keypair;
+    /// use ed25519_dalek_iroha::Signature;
     ///
     /// let mut csprng = OsRng{};
     /// let keypair: Keypair = Keypair::generate(&mut csprng);
@@ -120,9 +121,6 @@ impl Keypair {
     ///
     /// The caller must also supply a hash function which implements the
     /// `Digest` and `Default` traits, and which returns 512 bits of output.
-    /// The standard hash function used for most ed25519 libraries is SHA-512,
-    /// which is available with `use sha2::Sha512` as in the example above.
-    /// Other suitable hash functions include Keccak-512 and Blake2b-512.
     #[cfg(feature = "rand")]
     pub fn generate<R>(csprng: &mut R) -> Keypair
     where
@@ -134,12 +132,11 @@ impl Keypair {
         Keypair{ public: pk, secret: sk }
     }
 
-    /// Sign a `prehashed_message` with this `Keypair` using the
-    /// Ed25519ph algorithm defined in [RFC8032 §5.1][rfc8032].
+    /// Sign a `prehashed_message` with this `Keypair`.
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `context` is an optional context string, up to 255 bytes inclusive,
@@ -153,13 +150,13 @@ impl Keypair {
     /// # Examples
     ///
     /// ```
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     /// extern crate rand;
     ///
-    /// use ed25519_dalek::Digest;
-    /// use ed25519_dalek::Keypair;
-    /// use ed25519_dalek::Sha512;
-    /// use ed25519_dalek::Signature;
+    /// use ed25519_dalek_iroha::Digest;
+    /// use ed25519_dalek_iroha::Keypair;
+    /// use ed25519_dalek_iroha::Sha3_512;
+    /// use ed25519_dalek_iroha::Signature;
     /// use rand::rngs::OsRng;
     ///
     /// # #[cfg(feature = "std")]
@@ -169,7 +166,7 @@ impl Keypair {
     /// let message: &[u8] = b"All I want is to pet all of the dogs.";
     ///
     /// // Create a hash digest object which we'll feed the message into:
-    /// let mut prehashed: Sha512 = Sha512::new();
+    /// let mut prehashed: Sha3_512 = Sha3_512::new();
     ///
     /// prehashed.update(message);
     /// # }
@@ -200,21 +197,22 @@ impl Keypair {
     /// your own!):
     ///
     /// ```
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// # extern crate rand;
     /// #
-    /// # use ed25519_dalek::Digest;
-    /// # use ed25519_dalek::Keypair;
-    /// # use ed25519_dalek::Signature;
-    /// # use ed25519_dalek::SignatureError;
-    /// # use ed25519_dalek::Sha512;
+    /// # use ed25519_dalek_iroha::Digest;
+    /// # use ed25519_dalek_iroha::Keypair;
+    /// # use ed25519_dalek_iroha::Signature;
+    /// # use ed25519_dalek_iroha::SignatureError;
+    /// # use ed25519_dalek_iroha::Sha3_512;
+    /// # use ed25519_dalek_iroha::Sha3_256;
     /// # use rand::rngs::OsRng;
     /// #
     /// # fn do_test() -> Result<Signature, SignatureError> {
     /// # let mut csprng = OsRng{};
     /// # let keypair: Keypair = Keypair::generate(&mut csprng);
     /// # let message: &[u8] = b"All I want is to pet all of the dogs.";
-    /// # let mut prehashed: Sha512 = Sha512::new();
+    /// # let mut prehashed: Sha3_256 = Sha3_256::new();
     /// # prehashed.update(message);
     /// #
     /// let context: &[u8] = b"Ed25519DalekSignPrehashedDoctest";
@@ -232,7 +230,6 @@ impl Keypair {
     /// # fn main() { }
     /// ```
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     /// [terrible_idea]: https://github.com/isislovecruft/scripts/blob/master/gpgkey2bc.py
     pub fn sign_prehashed<D>(
         &self,
@@ -240,7 +237,7 @@ impl Keypair {
         context: Option<&[u8]>,
     ) -> Result<ed25519::Signature, SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
         let expanded: ExpandedSecretKey = (&self.secret).into(); // xxx thanks i hate this
 
@@ -261,7 +258,7 @@ impl Keypair {
     ///
     /// # Inputs
     ///
-    /// * `prehashed_message` is an instantiated hash digest with 512-bits of
+    /// * `prehashed_message` is an instantiated hash digest with 256-bits of
     ///   output which has had the message to be signed previously fed into its
     ///   state.
     /// * `context` is an optional context string, up to 255 bytes inclusive,
@@ -277,14 +274,14 @@ impl Keypair {
     /// # Examples
     ///
     /// ```
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     /// extern crate rand;
     ///
-    /// use ed25519_dalek::Digest;
-    /// use ed25519_dalek::Keypair;
-    /// use ed25519_dalek::Signature;
-    /// use ed25519_dalek::SignatureError;
-    /// use ed25519_dalek::Sha512;
+    /// use ed25519_dalek_iroha::Digest;
+    /// use ed25519_dalek_iroha::Keypair;
+    /// use ed25519_dalek_iroha::Signature;
+    /// use ed25519_dalek_iroha::SignatureError;
+    /// use ed25519_dalek_iroha::Sha3_256;
     /// use rand::rngs::OsRng;
     ///
     /// # fn do_test() -> Result<(), SignatureError> {
@@ -292,15 +289,14 @@ impl Keypair {
     /// let keypair: Keypair = Keypair::generate(&mut csprng);
     /// let message: &[u8] = b"All I want is to pet all of the dogs.";
     ///
-    /// let mut prehashed: Sha512 = Sha512::new();
+    /// let mut prehashed: Sha3_256 = Sha3_256::new();
     /// prehashed.update(message);
     ///
     /// let context: &[u8] = b"Ed25519DalekSignPrehashedDoctest";
     ///
     /// let sig: Signature = keypair.sign_prehashed(prehashed, Some(context))?;
-    ///
-    /// // The sha2::Sha512 struct doesn't implement Copy, so we'll have to create a new one:
-    /// let mut prehashed_again: Sha512 = Sha512::default();
+    /// // The sha3::Sha3_256 struct doesn't implement Copy, so we'll have to create a new one:
+    /// let mut prehashed_again: Sha3_256 = Sha3_256::default();
     /// prehashed_again.update(message);
     ///
     /// let verified = keypair.public.verify_prehashed(prehashed_again, Some(context), &sig);
@@ -319,7 +315,6 @@ impl Keypair {
     /// # fn main() { }
     /// ```
     ///
-    /// [rfc8032]: https://tools.ietf.org/html/rfc8032#section-5.1
     pub fn verify_prehashed<D>(
         &self,
         prehashed_message: D,
@@ -327,7 +322,7 @@ impl Keypair {
         signature: &ed25519::Signature,
     ) -> Result<(), SignatureError>
     where
-        D: Digest<OutputSize = U64>,
+        D: Digest<OutputSize = U32>,
     {
         self.public.verify_prehashed(prehashed_message, context, signature)
     }

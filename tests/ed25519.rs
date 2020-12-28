@@ -11,26 +11,23 @@
 
 #[cfg(all(test, feature = "serde"))]
 extern crate bincode;
-extern crate ed25519_dalek;
+extern crate ed25519_dalek_iroha;
 extern crate hex;
-extern crate sha2;
+extern crate sha3;
 extern crate rand;
 #[cfg(all(test, feature = "serde"))]
 extern crate serde_crate;
 #[cfg(all(test, feature = "serde"))]
 extern crate toml;
 
-use ed25519_dalek::*;
+use ed25519_dalek_iroha::*;
 
 use hex::FromHex;
-
-use sha2::Sha512;
 
 #[cfg(test)]
 mod vectors {
     use curve25519_dalek::{edwards::EdwardsPoint, scalar::Scalar};
     use ed25519::signature::Signature as _;
-    use sha2::{digest::Digest, Sha512};
     use std::convert::TryFrom;
 
     use std::io::BufReader;
@@ -39,11 +36,10 @@ mod vectors {
 
     use super::*;
 
-    // TESTVECTORS is taken from sign.input.gz in agl's ed25519 Golang
-    // package. It is a selection of test cases from
-    // http://ed25519.cr.yp.to/python/sign.input
+    // TESTVECTORS is generated from Java implementation of Iroha cryptography. Signature created
+    // from raw UTF-8 bytes of message without prehashing
     #[test]
-    fn against_reference_implementation() { // TestGolden
+    fn iroha_crypto_compatible() {
         let mut line: String;
         let mut lineno: usize = 0;
 
@@ -72,48 +68,61 @@ mod vectors {
             let public: PublicKey = PublicKey::from_bytes(&pub_bytes[..PUBLIC_KEY_LENGTH]).unwrap();
             let keypair: Keypair  = Keypair{ secret: secret, public: public };
 
-		    // The signatures in the test vectors also include the message
-		    // at the end, but we just want R and S.
             let sig1: Signature = Signature::from_bytes(&sig_bytes[..64]).unwrap();
             let sig2: Signature = keypair.sign(&msg_bytes);
 
-            assert!(sig1 == sig2, "Signature bytes not equal on line {}", lineno);
+            assert_eq!(sig1, sig2, "Signature bytes not equal on line {}", lineno);
             assert!(keypair.verify(&msg_bytes, &sig2).is_ok(),
                     "Signature verification failed on line {}", lineno);
         }
     }
 
-    // From https://tools.ietf.org/html/rfc8032#section-7.3
+    // TESTVECTORS_PH is generated from Java implementation of Iroha cryptography.
+    // Signature created from raw UTF-8 bytes of message with SHA3-256 prehasing
     #[test]
-    fn ed25519ph_rf8032_test_vector() {
-        let secret_key: &[u8] = b"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42";
-        let public_key: &[u8] = b"ec172b93ad5e563bf4932c70e1245034c35467ef2efd4d64ebf819683467e2bf";
-        let message: &[u8] = b"616263";
-        let signature: &[u8] = b"98a70222f0b8121aa9d30f813d683f809e462b469c7ff87639499bb94e6dae4131f85042463c2a355a2003d062adf5aaa10b8c61e636062aaad11c2a26083406";
+    fn iroha_crypto_prehashed_compatible() {
+        let mut line: String;
+        let mut lineno: usize = 0;
 
-        let sec_bytes: Vec<u8> = FromHex::from_hex(secret_key).unwrap();
-        let pub_bytes: Vec<u8> = FromHex::from_hex(public_key).unwrap();
-        let msg_bytes: Vec<u8> = FromHex::from_hex(message).unwrap();
-        let sig_bytes: Vec<u8> = FromHex::from_hex(signature).unwrap();
+        let f = File::open("TESTVECTORS_PH");
+        if f.is_err() {
+            println!("This test is only available when the code has been cloned \
+                      from the git repository, since the TESTVECTORS_PH file is large \
+                      and is therefore not included within the distributed crate.");
+            panic!();
+        }
+        let file = BufReader::new(f.unwrap());
 
-        let secret: SecretKey = SecretKey::from_bytes(&sec_bytes[..SECRET_KEY_LENGTH]).unwrap();
-        let public: PublicKey = PublicKey::from_bytes(&pub_bytes[..PUBLIC_KEY_LENGTH]).unwrap();
-        let keypair: Keypair  = Keypair{ secret: secret, public: public };
-        let sig1: Signature = Signature::from_bytes(&sig_bytes[..]).unwrap();
+        for l in file.lines() {
+            lineno += 1;
+            line = l.unwrap();
 
-        let mut prehash_for_signing: Sha512 = Sha512::default();
-        let mut prehash_for_verifying: Sha512 = Sha512::default();
+            let parts: Vec<&str> = line.split(':').collect();
+            assert_eq!(parts.len(), 5, "wrong number of fields in line {}", lineno);
 
-        prehash_for_signing.update(&msg_bytes[..]);
-        prehash_for_verifying.update(&msg_bytes[..]);
+            let sec_bytes: Vec<u8> = FromHex::from_hex(&parts[0]).unwrap();
+            let pub_bytes: Vec<u8> = FromHex::from_hex(&parts[1]).unwrap();
+            let msg_bytes: Vec<u8> = FromHex::from_hex(&parts[2]).unwrap();
+            let sig_bytes: Vec<u8> = FromHex::from_hex(&parts[3]).unwrap();
 
-        let sig2: Signature = keypair.sign_prehashed(prehash_for_signing, None).unwrap();
+            let secret: SecretKey = SecretKey::from_bytes(&sec_bytes[..SECRET_KEY_LENGTH]).unwrap();
+            let public: PublicKey = PublicKey::from_bytes(&pub_bytes[..PUBLIC_KEY_LENGTH]).unwrap();
+            let keypair: Keypair = Keypair { secret: secret, public: public };
 
-        assert!(sig1 == sig2,
-                "Original signature from test vectors doesn't equal signature produced:\
-                \noriginal:\n{:?}\nproduced:\n{:?}", sig1, sig2);
-        assert!(keypair.verify_prehashed(prehash_for_verifying, None, &sig2).is_ok(),
-                "Could not verify ed25519ph signature!");
+            let sig1: Signature = Signature::from_bytes(&sig_bytes[..64]).unwrap();
+
+            let mut prehash_for_signing: Sha3_256 = Sha3_256::default();
+            let mut prehash_for_verifying: Sha3_256 = Sha3_256::default();
+
+            prehash_for_signing.update(&msg_bytes[..]);
+            prehash_for_verifying.update(&msg_bytes[..]);
+
+            let sig2: Signature = keypair.sign_prehashed(prehash_for_signing, None).unwrap();
+
+            assert_eq!(sig1, sig2, "Signature bytes not equal on line {}", lineno);
+            assert!(keypair.verify_prehashed(prehash_for_verifying, None, &sig2).is_ok(),
+                    "Signature verification failed on line {}", lineno);
+        }
     }
 
     // Taken from curve25519_dalek::constants::EIGHT_TORSION[4]
@@ -123,7 +132,7 @@ mod vectors {
     ];
 
     fn compute_hram(message: &[u8], pub_key: &EdwardsPoint, signature_r: &EdwardsPoint) -> Scalar {
-        let k_bytes = Sha512::default()
+        let k_bytes = Sha3_512::default()
             .chain(&signature_r.compress().as_bytes())
             .chain(&pub_key.compress().as_bytes()[..])
             .chain(&message);
@@ -227,17 +236,17 @@ mod integrations {
 
         let mut csprng = OsRng{};
 
-        // ugh… there's no `impl Copy for Sha512`… i hope we can all agree these are the same hashes
-        let mut prehashed_good1: Sha512 = Sha512::default();
+        // ugh… there's no `impl Copy for Sha3_256`… i hope we can all agree these are the same hashes
+        let mut prehashed_good1: Sha3_256 = Sha3_256::default();
         prehashed_good1.update(good);
-        let mut prehashed_good2: Sha512 = Sha512::default();
+        let mut prehashed_good2: Sha3_256 = Sha3_256::default();
         prehashed_good2.update(good);
-        let mut prehashed_good3: Sha512 = Sha512::default();
+        let mut prehashed_good3: Sha3_256 = Sha3_256::default();
         prehashed_good3.update(good);
 
-        let mut prehashed_bad1: Sha512 = Sha512::default();
+        let mut prehashed_bad1: Sha3_256 = Sha3_256::default();
         prehashed_bad1.update(bad);
-        let mut prehashed_bad2: Sha512 = Sha512::default();
+        let mut prehashed_bad2: Sha3_256 = Sha3_256::default();
         prehashed_bad2.update(bad);
 
         let context: &[u8] = b"testing testing 1 2 3";

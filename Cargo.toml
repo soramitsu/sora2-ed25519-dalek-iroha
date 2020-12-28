@@ -1,5 +1,5 @@
 [package]
-name = "ed25519-dalek"
+name = "ed25519-dalek-iroha"
 version = "1.0.1"
 edition = "2018"
 authors = ["isis lovecruft <isis@patternsinthevoid.net>"]
@@ -11,7 +11,7 @@ documentation = "https://docs.rs/ed25519-dalek"
 keywords = ["cryptography", "ed25519", "curve25519", "signature", "ECC"]
 categories = ["cryptography", "no-std"]
 description = "Fast and efficient ed25519 EdDSA key generations, signing, and verification in pure Rust."
-exclude = [ ".gitignore", "TESTVECTORS", "res/*" ]
+exclude = [ ".gitignore", "TESTVECTORS", "TESTVECTORS_PH", "res/*" ]
 
 [badges]
 travis-ci = { repository = "dalek-cryptography/ed25519-dalek", branch = "master"}
@@ -29,7 +29,7 @@ rand = { version = "0.7", default-features = false, optional = true }
 rand_core = { version = "0.5", default-features = false, optional = true }
 serde_crate = { package = "serde", version = "1.0", default-features = false, optional = true }
 serde_bytes = { version = "0.11", default-features = false, optional = true }
-sha2 = { version = "0.9", default-features = false }
+sha3 = { version = "0.9.1", default-features = false}
 zeroize = { version = "1", default-features = false, features = ["zeroize_derive"] }
 
 [dev-dependencies]
@@ -50,14 +50,13 @@ harness = false
 
 [features]
 default = ["std", "rand", "u64_backend"]
-std = ["curve25519-dalek/std", "ed25519/std", "serde_bytes/std", "serde_crate/std", "sha2/std", "rand/std"]
+std = ["curve25519-dalek/std", "ed25519/std", "serde_bytes/std", "serde_crate/std", "sha3/std", "rand/std"]
 alloc = ["curve25519-dalek/alloc", "rand/alloc", "serde_bytes/alloc", "zeroize/alloc"]
 nightly = ["curve25519-dalek/nightly"]
 serde = ["serde_crate", "serde_bytes", "ed25519/serde"]
 batch = ["merlin", "rand"]
 # This feature enables deterministic batch verification.
 batch_deterministic = ["merlin", "rand", "rand_core"]
-asm = ["sha2/asm"]
 # This features turns off stricter checking for scalar malleability in signatures
 legacy_compatibility = []
 u64_backend = ["curve25519-dalek/u64_backend"]

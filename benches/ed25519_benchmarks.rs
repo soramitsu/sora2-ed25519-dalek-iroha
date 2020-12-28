@@ -9,19 +9,19 @@
 
 #[macro_use]
 extern crate criterion;
-extern crate ed25519_dalek;
+extern crate ed25519_dalek_iroha;
 extern crate rand;
 
 use criterion::Criterion;
 
 mod ed25519_benches {
     use super::*;
-    use ed25519_dalek::ExpandedSecretKey;
-    use ed25519_dalek::Keypair;
-    use ed25519_dalek::PublicKey;
-    use ed25519_dalek::Signature;
-    use ed25519_dalek::Signer;
-    use ed25519_dalek::verify_batch;
+    use ed25519_dalek_iroha::ExpandedSecretKey;
+    use ed25519_dalek_iroha::Keypair;
+    use ed25519_dalek_iroha::PublicKey;
+    use ed25519_dalek_iroha::Signature;
+    use ed25519_dalek_iroha::Signer;
+    use ed25519_dalek_iroha::verify_batch;
     use rand::thread_rng;
     use rand::prelude::ThreadRng;
 
