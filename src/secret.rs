@@ -74,11 +74,11 @@ impl SecretKey {
     /// # Example
     ///
     /// ```
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
-    /// use ed25519_dalek::SecretKey;
-    /// use ed25519_dalek::SECRET_KEY_LENGTH;
-    /// use ed25519_dalek::SignatureError;
+    /// use ed25519_dalek_iroha::SecretKey;
+    /// use ed25519_dalek_iroha::SECRET_KEY_LENGTH;
+    /// use ed25519_dalek_iroha::SignatureError;
     ///
     /// # fn doctest() -> Result<SecretKey, SignatureError> {
     /// let secret_key_bytes: [u8; SECRET_KEY_LENGTH] = [
@@ -122,15 +122,15 @@ impl SecretKey {
     ///
     /// ```
     /// extern crate rand;
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     ///
     /// # #[cfg(feature = "std")]
     /// # fn main() {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::PublicKey;
-    /// use ed25519_dalek::SecretKey;
-    /// use ed25519_dalek::Signature;
+    /// use ed25519_dalek_iroha::PublicKey;
+    /// use ed25519_dalek_iroha::SecretKey;
+    /// use ed25519_dalek_iroha::Signature;
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -144,14 +144,14 @@ impl SecretKey {
     ///
     /// ```
     /// # extern crate rand;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
     /// # fn main() {
     /// #
     /// # use rand::rngs::OsRng;
-    /// # use ed25519_dalek::PublicKey;
-    /// # use ed25519_dalek::SecretKey;
-    /// # use ed25519_dalek::Signature;
+    /// # use ed25519_dalek_iroha::PublicKey;
+    /// # use ed25519_dalek_iroha::SecretKey;
+    /// # use ed25519_dalek_iroha::Signature;
     /// #
     /// # let mut csprng = OsRng{};
     /// # let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -250,12 +250,12 @@ impl<'a> From<&'a SecretKey> for ExpandedSecretKey {
     /// ```
     /// # extern crate rand;
     /// # extern crate sha3;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
     /// # fn main() {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::{SecretKey, ExpandedSecretKey};
+    /// use ed25519_dalek_iroha::{SecretKey, ExpandedSecretKey};
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -296,13 +296,13 @@ impl ExpandedSecretKey {
     /// ```
     /// # extern crate rand;
     /// # extern crate sha3;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
     /// # #[cfg(feature = "std")]
     /// # fn main() {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::{SecretKey, ExpandedSecretKey};
+    /// use ed25519_dalek_iroha::{SecretKey, ExpandedSecretKey};
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);
@@ -336,16 +336,16 @@ impl ExpandedSecretKey {
     /// ```
     /// # extern crate rand;
     /// # extern crate sha3;
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// #
-    /// # use ed25519_dalek::{ExpandedSecretKey, SignatureError};
+    /// # use ed25519_dalek_iroha::{ExpandedSecretKey, SignatureError};
     /// #
     /// # #[cfg(feature = "std")]
     /// # fn do_test() -> Result<ExpandedSecretKey, SignatureError> {
     /// #
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::{SecretKey, ExpandedSecretKey};
-    /// use ed25519_dalek::SignatureError;
+    /// use ed25519_dalek_iroha::{SecretKey, ExpandedSecretKey};
+    /// use ed25519_dalek_iroha::SignatureError;
     ///
     /// let mut csprng = OsRng{};
     /// let secret_key: SecretKey = SecretKey::generate(&mut csprng);

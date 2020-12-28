@@ -97,14 +97,14 @@ impl Keypair {
     ///
     /// ```
     /// extern crate rand;
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     ///
     /// # #[cfg(feature = "std")]
     /// # fn main() {
     ///
     /// use rand::rngs::OsRng;
-    /// use ed25519_dalek::Keypair;
-    /// use ed25519_dalek::Signature;
+    /// use ed25519_dalek_iroha::Keypair;
+    /// use ed25519_dalek_iroha::Signature;
     ///
     /// let mut csprng = OsRng{};
     /// let keypair: Keypair = Keypair::generate(&mut csprng);
@@ -150,13 +150,13 @@ impl Keypair {
     /// # Examples
     ///
     /// ```
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     /// extern crate rand;
     ///
-    /// use ed25519_dalek::Digest;
-    /// use ed25519_dalek::Keypair;
-    /// use ed25519_dalek::Sha3_512;
-    /// use ed25519_dalek::Signature;
+    /// use ed25519_dalek_iroha::Digest;
+    /// use ed25519_dalek_iroha::Keypair;
+    /// use ed25519_dalek_iroha::Sha3_512;
+    /// use ed25519_dalek_iroha::Signature;
     /// use rand::rngs::OsRng;
     ///
     /// # #[cfg(feature = "std")]
@@ -197,15 +197,15 @@ impl Keypair {
     /// your own!):
     ///
     /// ```
-    /// # extern crate ed25519_dalek;
+    /// # extern crate ed25519_dalek_iroha;
     /// # extern crate rand;
     /// #
-    /// # use ed25519_dalek::Digest;
-    /// # use ed25519_dalek::Keypair;
-    /// # use ed25519_dalek::Signature;
-    /// # use ed25519_dalek::SignatureError;
-    /// # use ed25519_dalek::Sha3_512;
-    /// # use ed25519_dalek::Sha3_256;
+    /// # use ed25519_dalek_iroha::Digest;
+    /// # use ed25519_dalek_iroha::Keypair;
+    /// # use ed25519_dalek_iroha::Signature;
+    /// # use ed25519_dalek_iroha::SignatureError;
+    /// # use ed25519_dalek_iroha::Sha3_512;
+    /// # use ed25519_dalek_iroha::Sha3_256;
     /// # use rand::rngs::OsRng;
     /// #
     /// # fn do_test() -> Result<Signature, SignatureError> {
@@ -274,14 +274,14 @@ impl Keypair {
     /// # Examples
     ///
     /// ```
-    /// extern crate ed25519_dalek;
+    /// extern crate ed25519_dalek_iroha;
     /// extern crate rand;
     ///
-    /// use ed25519_dalek::Digest;
-    /// use ed25519_dalek::Keypair;
-    /// use ed25519_dalek::Signature;
-    /// use ed25519_dalek::SignatureError;
-    /// use ed25519_dalek::Sha3_256;
+    /// use ed25519_dalek_iroha::Digest;
+    /// use ed25519_dalek_iroha::Keypair;
+    /// use ed25519_dalek_iroha::Signature;
+    /// use ed25519_dalek_iroha::SignatureError;
+    /// use ed25519_dalek_iroha::Sha3_256;
     /// use rand::rngs::OsRng;
     ///
     /// # fn do_test() -> Result<(), SignatureError> {
